@@ -1,6 +1,15 @@
 import json
 from django.http import JsonResponse
 from django.http import HttpStatus
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.http import HttpResponse, HttpResponseNotAllowed
+
+
+@ensure_csrf_cookie
+def get_token_view(request, *args, **kwargs):
+    if request.method == 'GET':
+        return HttpResponse()
+    return HttpResponseNotAllowed('Only GET requests are allowed')
 
 
 def add(request):
