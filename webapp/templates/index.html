@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Arithmetic</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+<h1>Arithmetic</h1>
+
+<form id="csrf-form">
+    {% csrf_token %}
+</form>
+
+<div>
+    <label>A:</label>
+    <input type="number" id="A">
+</div>
+
+<div>
+    <label>B:</label>
+    <input type="number" id="B">
+</div>
+
+<div>
+    <button id="add">Add</button>
+    <button id="subtract">Subtract</button>
+    <button id="multiply">Multiply</button>
+    <button id="divide">Divide</button>
+</div>
+
+<p id="result"></p>
+<p id="error" style="color:red;"></p>
+
+<script>
+$(document).ready(function () {
+
+    function getCSRFToken() {
+        return document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+    }
+
+    function makeRequest(action) {
+        let A = Number($('#A').val());
+        let B = Number($('#B').val());
+
+        $.ajax({
+            url: '/api/v1/' + action + '/',
+            method: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            },
+            data: JSON.stringify({ A: A, B: B }),
+            success: function (response) {
+                $('#result').text('Answer: ' + response.answer);
+                $('#error').text('');
+            },
+            error: function (xhr) {
+                $('#result').text('');
+                $('#error').text(
+                    xhr.responseJSON?.error || 'Ошибка'
+                );
+            }
+        });
+    }
+
+    $('#add').click(() => makeRequest('add'));
+    $('#subtract').click(() => makeRequest('subtract'));
+    $('#multiply').click(() => makeRequest('multiply'));
+    $('#divide').click(() => makeRequest('divide'));
+});
+</script>
+
+</body>
+</html>

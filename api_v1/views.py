@@ -1,82 +1,82 @@
 import json
-from django.http import JsonResponse
-from django.http import HttpStatus
+from http import HTTPStatus
+from django.http import JsonResponse, HttpResponse, HttpResponseNotAllowed
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.http import HttpResponse, HttpResponseNotAllowed
 
 
 @ensure_csrf_cookie
-def get_token_view(request, *args, **kwargs):
+def get_token_view(request):
     if request.method == 'GET':
         return HttpResponse()
-    return HttpResponseNotAllowed('Only GET requests are allowed')
+    return HttpResponseNotAllowed(['GET'])
+
+
+def _get_numbers(request):
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return None, None, JsonResponse(
+            {"error": "Некорректный JSON"},
+            status=HTTPStatus.BAD_REQUEST
+        )
+
+    A = data.get('A')
+    B = data.get('B')
+
+    if not isinstance(A, (int, float)) or not isinstance(B, (int, float)):
+        return None, None, JsonResponse(
+            {"error": "Введите цифры."},
+            status=HTTPStatus.BAD_REQUEST
+        )
+
+    return A, B, None
 
 
 def add(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        A = data.get('A')
-        B = data.get('B')
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
 
-        if not isinstance(A, (int, float)) or not isinstance(B, (int, float)):
-            return JsonResponse(
-                {"error": "Введите цифры."},
-                status=HttpStatus.BAD_REQUEST
-            )
+    A, B, error = _get_numbers(request)
+    if error:
+        return error
 
-        answer = A + B
-        return JsonResponse({"answer": answer})
+    return JsonResponse({"answer": A + B})
 
 
 def subtract(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        A = data.get('A')
-        B = data.get('B')
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
 
-        if not isinstance(A, (int, float)) or not isinstance(B, (int, float)):
-            return JsonResponse(
-                {"error": "Введите цифры."},
-                status=HttpStatus.BAD_REQUEST
-            )
+    A, B, error = _get_numbers(request)
+    if error:
+        return error
 
-        answer = A - B
-        return JsonResponse({"answer": answer})
+    return JsonResponse({"answer": A - B})
 
 
 def multiply(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        A = data.get('A')
-        B = data.get('B')
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
 
-        if not isinstance(A, (int, float)) or not isinstance(B, (int, float)):
-            return JsonResponse(
-                {"error": "Введите цифры."},
-                status=HttpStatus.BAD_REQUEST
-            )
+    A, B, error = _get_numbers(request)
+    if error:
+        return error
 
-        answer = A * B
-        return JsonResponse({"answer": answer})
+    return JsonResponse({"answer": A * B})
 
 
 def divide(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        A = data.get('A')
-        B = data.get('B')
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
 
-        if not isinstance(A, (int, float)) or not isinstance(B, (int, float)):
-            return JsonResponse(
-                {"error": "Введите цифры."},
-                status=HttpStatus.BAD_REQUEST
-            )
+    A, B, error = _get_numbers(request)
+    if error:
+        return error
 
-        if B == 0:
-            return JsonResponse(
-                {"error": "Нельзя делить на ноль."},
-                status=HttpStatus.BAD_REQUEST
-            )
+    if B == 0:
+        return JsonResponse(
+            {"error": "Нельзя делить на ноль."},
+            status=HTTPStatus.BAD_REQUEST
+        )
 
-        answer = A / B
-        return JsonResponse({"answer": answer})
+    return JsonResponse({"answer": A / B})
